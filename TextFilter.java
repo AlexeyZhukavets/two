@@ -9,33 +9,29 @@ import java.util.regex.*;
 public class TextFilter {
 
     /*
-    * Параметры поиска, передаваемые программе во время запуска
+    * Search parameters passed to the program during startup
     * */
     private static String[] parameters;
 
     /*
-    * Список массивов слов каждой введенной строки
+    * list of entered strings
     * */
     private static List<String[]> inputStrings = new ArrayList<>();
 
     /*
-    * Паттерн, используется для регулярного выражения
-    * */
-    private static Pattern pattern;
-
-    /*
-    * Масиив boolean, каждое значение которого соответствует результату фильтрации
-    * одной введенной строки
+    * The array with the result of checking each entered string
     * */
     private static boolean[] rezultIndexes;
-    
+
+    private static Pattern pattern;
+
     public static void main(String[] args) {
         parameters = args;
         startProgramm();
     }
 
     /*
-    * Ввод строк
+    * Entering Strings
     * */
     private static void startProgramm(){
 
@@ -47,65 +43,65 @@ public class TextFilter {
 
             StringBuffer addString = new StringBuffer(scanner.nextLine());
 
-            //Признак окончания ввода данных, ввод пустой строки
+            //A sign of the end of data entry, input of an empty line
             if(addString.toString().equals("")){
                 break;
             }
 
-            //Удаляем из входной строки последний символ, если он ';'
+            //Remove the last character from the input line, if it ';'
             if(addString.charAt(addString.length() - 1) == ';'){
 
                 addString.deleteCharAt(addString.length() - 1);
 
             }
 
-            //Разбиваем входную строку на массив слов, который заносим в список inputStrings
+            //Split the input string into an array of substrings
             inputStrings.add(addString.toString().split(" "));
         }
 
         //rezultIndexes.length() = inputStrings.size
         rezultIndexes = new boolean[inputStrings.size()];
 
-        filter();//Выполняем фильтр
+        filter();//Run filter ()
     }
 
     /*
-    * Фильтр
+    * A method that compares the entered strings with the parameters of the program
     * */
     private static void filter(){
 
         boolean isPattern = false;
 
-        //Цикл перебирает параметры поиска
+        //The loop goes through the search parameters
         for (int i = 0; i < parameters.length; i++){
-            parameters[i] = parameters[i].trim();//Обрезаем пробелы у параметра программы
-            isPattern = isPattern(parameters[i]);//Явлеется ли параметр программы регулярным выражением
+            parameters[i] = parameters[i].trim();
+            isPattern = isPattern(parameters[i]);//Is the program parameter a regular expression?
 
-            //Цикл перебирает строки inputStrings
+            //The loop goes through the inputStrings
             for (int j = 0; j < inputStrings.size(); j++){
 
-                //Цикл перебирает слова в каждом inputStrings
+                //The loop goes through the substrings in inputStrings
                 for (int k = 0; k < inputStrings.get(j).length; k++){
 
-                    //Если параметр поиска не регулярное выражение, просто сравниваем строки
+                    //If the search parameter is not a regular expression, just compare the lines
                     if(!isPattern){
                         if(parameters[i].equals(inputStrings.get(j)[k])){
                             rezultIndexes[j] = true;
                             break;
                         }
                     }
-                    //Если параметр - регулярное выражение, выполняем проверку
+                    //If the parameter is a regular expression
                     else if(doMatch(inputStrings.get(j)[k])){
                         rezultIndexes[j] = true;
                     }
                 }
             }
         }
-        displayRezults();
+        displayRezults();//Output the result
     }
-    
+
     /*
-    * Проверка на соответствие регулярному выражению
+    * Regular expression test
     * */
     private static boolean doMatch(String word){
         Matcher matcher = pattern.matcher(word);
@@ -113,7 +109,7 @@ public class TextFilter {
     }
 
     /*
-    * Является ли параметр поиска регулярным выражением
+    * Is the search parameter a regular expression?
     * */
     private static boolean isPattern(String regex){
         try {
@@ -125,7 +121,7 @@ public class TextFilter {
     }
 
     /*
-    * Выводим результат фильтрации
+    * Display the result of the program
     * */
     private static void displayRezults(){
         System.out.println("Вывод:");
@@ -142,7 +138,7 @@ public class TextFilter {
     }
 
     /*
-    * Параметры переданные в программу при запуске, привиденные к одной строке
+    * Search parameters grafted to one line
     * */
     private static String parametersToString(){
         String parameterString = "";
