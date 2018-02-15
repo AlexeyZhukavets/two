@@ -1,9 +1,8 @@
-package acmp.parseexpression;
-
 /**
  * Created by alexe_000 on 11.02.2018.
  */
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Scanner;
@@ -19,17 +18,21 @@ public class SintaxAnalizator {
             {
                 System.out.print("¬ведите выражение дл€ вычислени€\n");
                 String str = scanner.nextLine();
-                if(str.equals(""))
+                if(str.equals("")){
                     break;
+                }
 
-                double result = myParser.evaluate(str);
+                BigDecimal result = myParser.evaluate(str);
 
                 DecimalFormatSymbols s = new DecimalFormatSymbols();
 
                 s.setDecimalSeparator('.');
+                
                 DecimalFormat f = new DecimalFormat("#,###.00", s);
-                System.out.printf("%s = %s%n", str, f.format(result));
-
+                
+                System.out.printf(f.format(result));
+                
+                System.out.println();
             }
             catch(ParserException e)
             {
@@ -41,5 +44,4 @@ public class SintaxAnalizator {
             }
         }
     }
-
 }
