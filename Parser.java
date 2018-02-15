@@ -1,29 +1,29 @@
-package acmp.parseexpression;
+import java.math.BigDecimal;
 
 /**
  * Created by alexe_000 on 11.02.2018.
  */
 public class Parser {
 
-    //  Объявление лексем
+    //  Declaration of lexemes
     final int NONE = 0;         //  FAIL
-    final int DELIMITER = 1;    //  Разделитель(+-*/^=, ")", "(" )
-    final int VARIABLE = 2;     //  Переменная
-    final int NUMBER = 3;       //  Число
+    final int DELIMITER = 1;    //  Delimiter(+-*/^=, ")", "(" )
+    final int VARIABLE = 2;     //  Variable
+    final int NUMBER = 3;       //  Number
 
-    //  Объявление констант синтаксических ошибок
-    final int SYNTAXERROR = 0;  //  Синтаксическая ошибка (10 + 5 6 / 1)
-    final int UNBALPARENS = 1;  //  Несовпадение количества открытых и закрытых скобок
-    final int NOEXP = 2;        //  Отсутствует выражение при запуске анализатора
-    final int DIVBYZERO = 3;    //  Ошибка деления на ноль
+    //  Declaration of error constants
+    final int SYNTAXERROR = 0;  //  Syntax error (10 + 5 6 / 1)
+    final int UNBALPARENS = 1;  //  Mismatch of the number of open and closed brackets
+    final int NOEXP = 2;        //  Missing expression when starting the analyzer
+    final int DIVBYZERO = 3;    //  Division by zero
 
-    //  Лексема, определяющая конец выражения
+    //  A lexeme that defines the end of an expression
     final String EOF = "\0";
 
-    private String exp;     //  Ссылка на строку с выражением
-    private int explds;     //  Текущий индекс в выражении
-    private String token;   //  Сохранение текущей лексемы
-    private int tokType;    //  Сохранение типа лексемы
+    private String exp;     //  A reference to a string with an expression
+    private int explds;     //  Current index in expression
+    private String token;   //  Saving the current token
+    private int tokType;    //  Token type
 
 
     public String toString(){
@@ -31,20 +31,20 @@ public class Parser {
                 token.toString(), tokType);
     }
 
-    //  Получить следующую лексему
+    // Get the following token
     private void getToken(){
         tokType = NONE;
         token = "";
 
-        //  Проверка на окончание выражения
+        // Checking for the end of the expression
         if(explds == exp.length()){
             token = EOF;
             return;
         }
-        //  Проверка на пробелы, если есть пробел - игнорируем его.
+        // Check for spaces, if there is a space - ignore it.
         while(explds < exp.length() && Character.isWhitespace(exp.charAt(explds)))
             ++ explds;
-        //  Проверка на окончание выражения
+        // Checking for the end of the expression
         if(explds == exp.length()){
             token = EOF;
             return;
@@ -58,8 +58,9 @@ public class Parser {
             while(!isDelim(exp.charAt(explds))){
                 token += exp.charAt(explds);
                 explds++;
-                if(explds >= exp.length())
+                if(explds >= exp.length()){
                     break;
+                }
             }
             tokType = VARIABLE;
         }
@@ -67,8 +68,9 @@ public class Parser {
             while(!isDelim(exp.charAt(explds))){
                 token += exp.charAt(explds);
                 explds++;
-                if(explds >= exp.length())
+                if(explds >= exp.length()){
                     break;
+                }
             }
             tokType = NUMBER;
         }
@@ -78,6 +80,7 @@ public class Parser {
         }
     }
 
+    // Is delimiter
     private boolean isDelim(char charAt) {
         if((" +-/*%^=()".indexOf(charAt)) != -1){
             return true;
@@ -86,33 +89,38 @@ public class Parser {
         }
     }
 
-    //  Точка входа анализатора
-    public double evaluate(String expstr) throws ParserException{
+    // Analyzer input point
+    public BigDecimal evaluate(String expstr) throws ParserException{
 
-        double result;
+        expstr = expstr.replaceAll(",", ".");
+
+        BigDecimal result;
 
         exp = expstr;
         explds = 0;
         getToken();
 
-        if(token.equals(EOF))
-            handleErr(NOEXP);   //  Нет выражения
+        if(token.equals(EOF)){
+            handleErr(NOEXP);   // Not expression
+        }
 
-        //  Анализ и вычисление выражения
+        // Analysis and calculation of the expression
         result = evalExp2();
 
-        if(!token.equals(EOF))
+        if(!token.equals(EOF)){
             handleErr(SYNTAXERROR);
+        }
 
         return result;
     }
 
-    //  Сложить или вычислить два терма
-    private double evalExp2() throws ParserException{
+    // Add or subtract
+    private BigDecimal evalExp2() throws ParserException{
 
         char op;
-        double result;
-        double partialResult;
+        BigDecimal result;
+        BigDecimal partialResult;
+
         result = evalExp3();
         while((op = token.charAt(0)) == '+' ||
                 op == '-'){
@@ -120,22 +128,22 @@ public class Parser {
             partialResult = evalExp3();
             switch(op){
                 case '-':
-                    result -= partialResult;
+                    result = result.subtract(partialResult);
                     break;
                 case '+':
-                    result += partialResult;
+                    result = result.add(partialResult);
                     break;
             }
         }
         return result;
     }
 
-    //  Умножить или разделить два фактора
-    private double evalExp3() throws ParserException{
+    // Multiply or divide
+    private BigDecimal evalExp3() throws ParserException{
 
         char op;
-        double result;
-        double partialResult;
+        BigDecimal result;
+        BigDecimal partialResult;
 
         result = evalExp4();
         while((op = token.charAt(0)) == '*' ||
@@ -144,48 +152,48 @@ public class Parser {
             partialResult = evalExp4();
             switch(op){
                 case '*':
-                    result *= partialResult;
+                    result = result.multiply(partialResult);
                     break;
                 case '/':
-                    if(partialResult == 0.0)
+                    if(partialResult.compareTo(BigDecimal.ZERO) == 0){
                         handleErr(DIVBYZERO);
-                    result /= partialResult;
-                    break;
-                case '%':
-                    if(partialResult == 0.0)
-                        handleErr(DIVBYZERO);
-                    result %= partialResult;
-                    break;
+                    }else {
+                        result = result.divide(partialResult);
+                        break;
+                    }
             }
         }
         return result;
     }
 
-    //  Выполнить возведение в степень
-    private double evalExp4() throws ParserException{
+    // Pow
+    private BigDecimal evalExp4() throws ParserException{
 
-        double result;
-        double partialResult;
-        double ex;
+        BigDecimal result;
+        BigDecimal partialResult;
+        BigDecimal ex;
+
         result = evalExp5();
+
         if(token.equals("^")){
             getToken();
             partialResult = evalExp4();
             ex = result;
-            if(partialResult == 0.0){
-                result = 1.0;
-            }else
-                result = Math.pow(ex, partialResult);
+            if(partialResult.compareTo(BigDecimal.ZERO) == 0){
+                result = new BigDecimal(1);
+            }else{
+                result = BigDecimal.valueOf(Math.pow(ex.doubleValue(), partialResult.intValue()));
+            }
         }
         return result;
     }
 
-    //  Определить унарные + или -
-    private double evalExp5() throws ParserException{
-        double result;
+    // Define the unary + or -
+    private BigDecimal evalExp5() throws ParserException{
 
-        String op;
-        op = " ";
+        BigDecimal result;
+
+        String op = " ";
 
         if((tokType == DELIMITER) && token.equals("+") ||
                 token.equals("-")){
@@ -193,15 +201,17 @@ public class Parser {
             getToken();
         }
         result = evalExp6();
-        if(op.equals("-"))
-            result = -result;
+        if(op.equals("-")){
+            result = result.negate();
+        }
+
         return result;
     }
 
-    //  Обработать выражение в скобках
-    private double evalExp6() throws ParserException{
+    // Expression in brackets
+    private BigDecimal evalExp6() throws ParserException{
 
-        double result;
+        BigDecimal result;
 
         if(token.equals("(")){
             getToken();
@@ -215,14 +225,15 @@ public class Parser {
         return result;
     }
 
-    //  Получить значение числа
-    private double atom()   throws ParserException{
+    // Get the value of a number
+    private BigDecimal atom()   throws ParserException{
 
-        double result = 0.0;
+        BigDecimal result = null;
+
         switch(tokType){
             case NUMBER:
                 try{
-                    result = Double.parseDouble(token);
+                    result = BigDecimal.valueOf(Double.parseDouble(token));
                 }
                 catch(NumberFormatException exc){
                     handleErr(SYNTAXERROR);
@@ -237,7 +248,7 @@ public class Parser {
         return result;
     }
 
-    //  Кинуть ошибку
+    //  Throw Exception
     private void handleErr(int nOEXP2) throws ParserException{
 
         String[] err  = {
