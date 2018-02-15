@@ -1,5 +1,3 @@
-package acmp.parseexpression;
-
 /**
  * Created by alexe_000 on 11.02.2018.
  */
