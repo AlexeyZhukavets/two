@@ -181,8 +181,10 @@ public class Parser {
             ex = result;
             if(partialResult.compareTo(BigDecimal.ZERO) == 0){
                 result = new BigDecimal(1);
-            }else{
-                result = BigDecimal.valueOf(Math.pow(ex.doubleValue(), partialResult.intValue()));
+            }else if(partialResult.compareTo(BigDecimal.ZERO) < 0){
+                result = new BigDecimal(1).divide(ex.pow(Math.abs(partialResult.intValue())));
+            }else {
+                result = ex.pow(partialResult.intValue());
             }
         }
         return result;
